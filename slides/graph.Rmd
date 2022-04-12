@@ -1,0 +1,221 @@
+---
+title: "Graph Theory"
+author: "Mark Andrews"
+date: "11/04/2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Definitions
+
+* Mathematically, a *graph* $G$ is defined as 
+$$
+G = (V, E),
+$$
+where $V$ is a set whose element are *vertices* and where $E$ is a set of pairs of the elements of $V$, which are known as *edges*.
+
+* Outside of mathematics, we often use these alternative terms:
+$$
+\begin{aligned}
+\textrm{graph} & \leftrightarrow\textrm{network}\\
+\textrm{vertex} &  \leftrightarrow\textrm{node}\\
+\textrm{edge} &  \leftrightarrow\textrm{link}
+\end{aligned}
+$$
+
+## Directed, undirected, mixed, weighted, graphs
+
+* In a *directed* graph, the set of edges $E$ are ordered pairs of vertices. 
+* In a directed graph, if $i$ and $j$ are vertices, and there is a directed edge from $i$ to $j$, we represent this with ordered pair $(i, j)$, where then $i$ is tail and $j$ is the head.
+* In an *undirected* graph, edges in $E$ are unordered pairs of vertices.
+* A *mixed* graph is where some edges are directed and others are undirected.
+* A *weighted* graphed is where edges have an additional value, the *weight*, that represent how closely connected the vertices are.
+
+## Simple graph, mutigraph
+
+* Our definitions thus far are for a *simple graph*.
+* In a *multigraph*, the $E$ set is a *multiset* whereby there is possibly more than one edges between any given pair of vertices.
+
+## Examples
+
+* A set of people with sexual contact can be represented by an undirected, possibly weighted, graph: each vertex represents an person, and edges between person $i$ and person $j$ represents whether $i$ and $j$ have sexual relationships.
+* A set of children in school can be represented by an undirected, possibly weighted, graph: each vertex represents a child, and edges between child $i$ and child $j$ represents whether $i$ and $j$ are friends.
+* Follower network on a social media site like Twitter can be represented by an directed graph: each vertex represents a Twitter user, and a directed edges between user $i$ and user $j$ represents whether $i$ follows $j$.
+
+## Vertex, edge attributes
+
+* Each vertex could have additional information. For example, in friendship network, each vertex could represent the person's age, gender etc.
+* Likewise, each edge could have attributes. For example, in a social network, an edge could have an attributes indicating if there is a sexual or non-sexual relationship between two people.
+* The weight is the most common type of the edge attribute.
+
+## Order, size, completeness
+
+* The *order* of a graph is $\vert V \vert$, i.e., the cardinality of the set $V$, i.e. the number of vertices, often represented by $n$ or $N$.
+* The *size* of the graph is usually $\vert E \vert$, i.e., the cardinality of the set $E$, i.e. the number of edges, often represented by $L$.
+* In a undirected graph of order $N$, the maximum value of $L$ is $N(N-1)/2$, assuming no loops (edges from a vertex to itself), or $N(N+1)/2$, assuming loops.
+* In a directed graph of order $N$, the maximum value of $L$ is $N(N-1)$, assuming no loops, or $N^2$, assuming loops.
+* A graph is *complete* if it has its maximum number of edges.
+
+## Density
+
+* The graph's *density* is the ratio of the number of edges $L$ to the maximum number of edges:
+$$
+\textrm{density} = \frac{2L}{N(N-1)}
+$$
+
+
+## Degree, average degree (undirected graph)
+
+* In an undirected graph, the degree of vertex $i$ is the number of edges containing $i$.
+* If $k_i$ is the degree of vertex $i$, then 
+$$
+L = \frac{1}{2}\sum_{i=1}^N k_i
+$$
+* The *average degree* of $G$ is the average of the degrees of all vertices:
+$$
+\langle k \rangle = \frac{1}{N}\sum_{i=1}^N k_i = \frac{2L}{N}.
+$$
+
+## Degree, average degree (directed graph)
+
+* In a directed graph, the degree of vertex $i$ is
+$$
+k_i = k^{\textrm{in}}_i + k^{\textrm{out}}_i,
+$$
+where $k^{\textrm{in}}_i$ is the *in-degree* or *incoming degree* of $i$, representing number of directed edges to $i$, and $k^{\textrm{out}}_i$ is the *out-degree* or *outgoing degree* from $i$, representing number of directed edges from $i$.
+* In a directed graph, we have
+$$
+L = \sum_{i=1}^N k^{\textrm{in}}_i = \sum_{i=1}^N k^{\textrm{out}}_i.
+$$
+
+
+## Degree, average degree (directed graph)
+
+* In a directed graph, we also have
+$$
+\langle k^{\textrm{in}} \rangle = \frac{1}{N}\sum_{i=1}^N k^{\textrm{in}}_i =
+\langle k^{\textrm{out}} \rangle = \frac{1}{N}\sum_{i=1}^N k^{\textrm{out}}_i = \frac{L}{N}.
+$$
+
+## Degree distribution
+
+* In a network $G$, $N_k$ is the number of vertices of degree (or in-degree or out-degree) $k$.
+* The degree probability $p_k$ is $N_k/N$.
+* The degree distribution is the probability distribution:
+$$
+\{p_k \colon k \in 0, 1 \ldots n-1\}.
+$$
+
+## Adjacency matrix
+
+* We can represent the graph $G$ using a square adjacency matrix $A$:
+$$
+A =
+\begin{bmatrix}
+A_{11} & A_{12} & \cdots & A_{1N} \\
+A_{21} & A_{22} & \cdots & A_{2N} \\
+\vdots & \vdots & \ddots & \vdots \\
+A_{N1} & A_{N2} & \cdots & A_{NN}
+\end{bmatrix}
+$$
+* The number of rows (columns) is the number of vertices.
+* In a directed graph, if a directed edge exists to $i$ from $j$, then $A_{ij} = 1$, otherwise $A_{ij} = 0$.
+* In an undirected graph, if an edge exists between $i$ and $j$, then $A_{ij} = A_{ji} = 1$, otherwise  $A_{ij} = A_{ji} = 0$.
+
+## Degree from adjacency matrix
+
+* In undirected graphs, the degree for vertex $i$ is
+$$
+k_i = \sum_{j=1}^{N} A_{ij} = \sum_{j=1}^{N} A_{ji}.
+$$
+* In directed graphs, for vertex $i$, we have:
+$$
+k^{\textrm{in}}_i = \sum_{j=1}^{N} A_{ij},\quad k^{\textrm{out}}_i  = \sum_{j=1}^{N} A_{ji}.
+$$
+
+## Paths, distance, diameter
+
+* A *path* from $i$ to $j$ is a sequence of vertices starting at $i$ and ending at $j$.
+* A *shortest path* (*geodesic path*) between $i$ and $j$ is a sequence of vertices starting at $i$ and ending at $j$,with the minimal number of edges.
+* The number of edges on the *shortest path* between $i$ and $j$ is the *distance* (*geodesic distance*) between $i$ and $j$.
+* The average distance of the graph is the averages of all the distances.
+* The *diameter* is the maximum distance between any two vertices.
+
+## Clustering coefficients
+
+* The clustering coefficient of vertex $i$ is
+$$
+C_i = \frac{2 L_i}{k_i (k_i -1)},
+$$
+where $k_i$ is the degree of $i$ and $L_i$ is the number of edges between the vertices that are adjacent to $i$.
+* The clustering coefficient $C_i$ gives the probability that any two neighbours of $i$ are themselves neighbours.
+* A high $C_i$ means the graph is clique-y.
+* The average clustering coefficient is 
+$$
+\langle C \rangle = \frac{1}{N} \sum_{i=1}^N C_i.
+$$
+
+## Global clustering coefficient
+
+* The global clustering coefficient is an alternative to $\langle C \rangle$:
+$$
+\frac{
+\textrm{$3 \times $ number of triangles}
+}{
+\textrm{number of connected triples}.
+}
+$$
+* A *connected triplet* is where $i$ connects to a pair of other nodes.
+
+## Closeness, betweenness centrality
+
+* The closeness centrality of a vertex $i$ is the reciprocal of the sum of the distances to all other nodes.
+$$
+cc_i = \frac{1}{\sum_{j=1}^N d_{ij}}.
+$$
+
+* The betweenness centrality is as follows:
+$$
+bc_i = \sum_{i\neq j \neq k} \frac{\omega_{jk\vert i}}{\omega_{jk}}
+$$
+where $\omega_{jk}$ is the number of geodesics between $j$ and $k$, and $\omega_{jk\vert i}$ is the number of geodesics between $j$ and $k$ that pass through $i$.
+
+## Eigenvector centrality
+
+* The eigenvector centrality $ec_i$ of vertex $i$ is given by: 
+$$
+ec_i = \frac{1}{\lambda} \sum_{j=1}^N A_{ij} ec_j
+$$ 
+* In matrix terms this is as follows:
+$$
+\lambda \vec{ec} = \vec{ec} A,
+$$
+where $\lambda$ is a constant. Hence, $\vec{ec}$ is the eigenvector of $A$.
+
+* Intuitively, $ec_i$ is high is $i$ is connected to other vertices with high eigenvector centrality.
+
+* Google's *PageRank* is based on a variant of eigenvector centrality.
+
+## Hubs and authorities
+
+* Hubs and authorities are a generalization of eigenvector centrality.
+* The authority centrality $a_i$ and hub authority $h_i$ of vertex $i$ are: 
+$$
+a_i = \alpha \sum_{j=1}^N A_{ij} h_j,\quad h_i = \beta \sum_{j=1}^N A_{ji} a_i.
+$$ 
+* The hub and authority vectors are obtained by eigenvectors of $AA^\intercal$ and $A^\intercal A$.
+* A vertex has a high hub score if its neighbours have high authority scores.
+* A vertex has a high authority score if its neighbours have high hub scores.
+
+## Network cohesion
+
+* Minimum number of vertices (or edges) to remove to make graph not connected.
+* If the graph is not already connected, the cohesion is 0.
+
+## Assortativity
+
+* Degree assortativity is the correlation between the graph degree of neighbours.
+
