@@ -1,0 +1,276 @@
+---
+title: "Random Graphs"
+author: "Mark Andrews"
+date: "December 2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(here)
+theme_set(theme_classic())
+```
+
+## Erdős-Rényi network
+
+* Erdős-Rényi networks are networks produced by simple data generating process: Between each pair of vertices in an undirected graph of size $N$, create a edge with fixed probability $p$. 
+* This is a $G(N,p)$ Erdős-Rényi network.
+
+## Erdős-Rényi network
+
+* There are 
+$$
+{N \choose 2} = \frac{N(N-1)}{2}
+$$
+possible edges in an $N$ vertex graph.
+* The probability that an edge is formed between any pair of vertices is $p$.
+* The probability that an edge is formed between vertices $i$ and $j$ is independent of the probability that edge is formed between $i^\prime$ and $j^\prime$.
+
+## Erdős-Rényi network
+
+* We can represent the edges as a sequence of random variables
+$$
+e_1, e_2 \ldots e_{N \choose 2},
+$$
+each of which can take a value of either $0$ or $1$ independently and with probability $p$.
+* Therefore, this is a Bernoulli process:
+$$
+e_i \overset{\textrm{iid}}{\sim} \textrm{Bernoulli}(p),\quad\text{for $i \in 1\ldots {N \choose 2}$}
+$$
+
+  
+## Erdős-Rényi network: Distribution of $L$
+
+* Number of edges has a binomial distribution: $L \sim \textrm{Binomial}({N \choose 2}, p)$:
+$$
+P(L) = {{N \choose 2} \choose L} p^L (1-p)^{{N \choose 2} - L}.
+$$
+* The average number of edges $\langle L \rangle$ is $p \times {N \choose 2}$.
+* The variance of number of edges: $p \times (1-p) \times {N \choose 2}$.
+
+  
+## Erdős-Rényi network: Density distribution 
+
+* The graph's density is the number of edges $L$ over the total number of edges:
+$$
+\text{density} = \frac{L}{N \choose 2} = \frac{L}{\frac{N(N-1)}{2}} = \frac{2L}{N(N-1)}
+$$
+* Therefore, the probability of density 
+$$
+\frac{2L}{N(N-1)}
+$$
+is the probability of $L$ edges.
+* The average density is 
+$$
+\langle L \rangle  = \frac{p \times {N \choose 2}}{{N \choose 2}} = p.
+$$
+
+
+
+## Erdős-Rényi network: Degree distribution
+
+* For each of the $N$ vertices, there are $N-1$ possible neighbours.
+* There is a probability $p$ that there is an edge each of the $N-1$ neighbours.
+* These probabilities are independent.
+* Therefore, there is a binomial distribution over the *degrees* in the network:
+$$
+P(k) = {N - 1 \choose 2} p^K (1-p)^{N - 1 - k}.
+$$
+
+
+
+## Erdős-Rényi network: Degree distribution
+
+* The average degree $\langle k \rangle$ is $p \times N -1$.
+* The variance of the degree is $p \times (1 - p) \times N -1$.
+
+## Erdős-Rényi network: Poisson degree distribution
+
+* When $\langle k \rangle \ll N$, then 
+$$
+P(k) = {N - 1 \choose 2} p^K (1-p)^{N - 1 - k} \approx \textrm{Poisson}(\lambda = \langle k \rangle),
+$$
+with $\langle k \rangle = p (N - 1)$.
+
+
+* Vertex degree in binomially distributed: $\textrm{Binomial}(N-1, p)$.
+* $\langle k \rangle$ is $p (N-1)$.
+* For low $p$, degree distribution is approximately Poisson $\textrm{Poisson}(\lambda = \langle k \rangle)$.
+
+## Degree distributions in real networks are not Poisson
+
+* In a Poisson distribution with mean $\lambda$, the standard deviation is $\sqrt{\lambda}$ and excess kurtosis is $1/\lambda$.
+* If, for example, a friendship network was Erdős-Rényi, nearly everyone would have the same number of friends.
+
+
+
+## Degree distributions in Facebook friendship
+
+```{r}
+g3 <- igraph::graph_from_data_frame(
+  read_delim(here('data/facebook.txt'), delim = ' '),
+  directed = FALSE
+)
+
+p1 <- 
+degree_distribution(g3) %>%
+  enframe(name = 'degree', value = 'prob') %>%
+  mutate(degree = degree - 1) %>%
+  mutate(across(.fns = log10)) %>%
+  filter(!if_any(.fns = is.infinite)) %>%
+  ggplot(aes(x = degree, y = prob)) +
+  geom_point() +
+  lims(x = c(-0.01, 2.5),
+       y = c(-3.5, -1.0)) +
+  labs(y = 'log10 prob',
+       x = 'log10 degree')
+p1
+```
+
+
+## Degree distributions in Facebook friendship, versus Poisson
+
+```{r}
+
+g3_k <-  mean(degree(g3))
+theoretical_df <- 
+  tibble(x = seq(1000),
+         y = dpois(x, lambda = g3_k)
+  ) %>% 
+  mutate(across(.fns = log10)) %>%
+  filter(!if_any(.fns = is.infinite)) %>%
+  rename(degree = x, prob = y)
+
+p1 +
+  geom_line(data = theoretical_df,
+            aes(x = degree, y = prob),
+            colour = 'green') +
+  lims(x = c(-0.01, 2.5),
+       y = c(-3.5, -1.0)) +
+  labs(y = 'log10 prob',
+       x = 'log10 degree')
+```
+
+
+## Degree distributions in facebook friendship, versus Poisson
+
+```{r}
+p1 +
+  geom_line(data = theoretical_df,
+            aes(x = degree, y = prob),
+            colour = 'green') +
+  lims(x = c(-0.01, 3.0),
+       y = c(-8.5, -1.0)) +
+  labs(y = 'log10 prob',
+       x = 'log10 degree')
+```
+
+##  Erdős-Rényi network: Clustering coefficient
+
+* For a vertex $i$ with degree $k_i$, there are 
+$$
+{k_i \choose 2} = \frac{k_i (k_i - 1)}{2}
+$$
+possible edges in its neighbourhood.
+* The probability distribution over $L_i$, the number of edges in the neighbourhood of $i$, is a binomial distribution of size ${k_i \choose 2}$ and probability $p$.
+* The average of this distribution is $p \times {k_i \choose 2}$.
+
+
+##  Erdős-Rényi network: Clustering coefficient
+
+* The clique coefficient of vertex $i$ is 
+$$
+\frac{L_i}{{k_i \choose 2}}
+$$
+* The average value of this must be
+$$
+\frac{p \times {k_i \choose 2}}{{k_i \choose 2}} = p.
+$$
+
+## Connectedness and supercriticality
+
+* If $\langle k \rangle < 1$, or $p < 1/N$, the largest component is approximately zero.
+* If $\langle k \rangle \geq 1$, a *giant* component emerges.
+* If $\langle k \rangle > \ln(N)$, the network is almost connected.
+
+
+## Watts-Strogatz small-world networks
+
+* In general, small world networks have low average distance: there are short distances between pair of nodes.
+* Many real world networks have this property, as do Erdős-Rényi graphs.
+* However, real world networks often do not have properties of Erdős-Rényi graphs.
+* [Duncan Watts and Steven Stogatz (1998)](http://worrydream.com/refs/Watts-CollectiveDynamicsOfSmallWorldNetworks.pdf) proposed a variant of Erdős-Rényi graphs that they showed is small-world but has more properties of real wold networks.
+
+
+## Watts-Strogatz small-world networks
+
+* Start with a regular ring lattice with connections to $2K$ neighbours, with $K$ on either side.
+* For example, here is a ring lattice with $K=2$ neighbours on either side:
+```{r}
+plot(sample_smallworld(dim = 1, size = 10, nei = 2, p = 0), layout= layout_in_circle, vertex.label=NA)
+```
+
+
+
+## Watts-Strogatz small-world networks
+
+* This regular lattice has relatively high clustering coefficient, but also a high diameter relative to random graph of similar size and order.
+* It is therefore realistic in terms of its clustering coefficient, but unrealistic in terms of its distances/diameter.
+
+
+## Watts-Strogatz small-world networks
+
+* To create the Watts-Strogatz network, rewire each edge in the regular ring lattice with probability $p$.
+* For example, here is a ring lattice with $K=2$ neighbours on either side, with a rewiring probability of $p=1/20$:
+```{r}
+set.seed(104)
+plot(sample_smallworld(dim = 1, size = 10, nei = 2, p = 1/20), layout= layout_in_circle, vertex.label=NA)
+```
+
+## Watts-Strogatz small-world networks
+
+* The Watts-Strogatz network has high clique coefficients but with low average distance, a propert shared with many real world networks, e.g. neural networks, film actor networks, electrical power grid.
+
+## Random graphs and degree distribution
+
+* Neither the Erdős-Rényi nor Watts-Strogatz networks have degree distribution typical of many real world networks. 
+* Many real world networks --- friendships, sexual networks, www --- are heavy-tailed: some nodes have large number of connections.
+* More generally, the degree distribution is a *power law*:
+$$
+P(k) \sim k^{-\gamma}.
+$$
+* Power law distributions are such that 
+$$
+\log(P(k)) \propto -\log(k)
+$$
+
+## Power law degree distributions
+
+* Networks formed by *preferential attachment* have power law degree distributions.
+* In preferential attachment, as a network grows, new nodes form attachments to nodes with many edges.
+* The probability of edge forming increases with the number of edges.
+* This is known as the *Matthew effect*, 
+  
+  > *For unto every one that hath shall be given, and he shall have abundance* (Matthew, 25:29)
+  
+  or the *rich-get-richer*.
+  
+## Preferential attachment network
+
+* In a preferential attachment network, we start with one node and add new ones.
+* Each time we add a new node, the probability of an edge forming to a previous node $i$ has the probability
+$$
+p_i \propto k_i^\alpha,
+$$
+where $k_i$ is the degree of $i$.
+
+## Preferential attachment network
+
+```{r}
+plot(sample_pa(100, directed = FALSE), layout=layout_with_fr, vertex.size=1, vertex.label=NA)
+```
+
