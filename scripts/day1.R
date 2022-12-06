@@ -126,7 +126,7 @@ transitivity(g1, type = 'global')
 
 # see all the triangles
 triangles(g1)
-matrix(triangles(g1), nrow = 3)
+t(matrix(triangles(g1), nrow = 3))
 
 count_triangles(g1) 
 
@@ -136,3 +136,33 @@ count_triangles(g1)
 closeness(g1) # closeness centrality
 closeness(g1) %>% which.max()
 closeness(g1) %>% which.min()
+
+# degree centrality
+degree(g1) %>% which.max()
+
+# betweenness centrality
+betweenness(g1) %>% which.max()
+
+# eigen centrality
+eigen_centrality(g1)$vector %>% sort()
+
+# page rank centrality
+igraph::page_rank(g1)$vector %>% sort()
+
+eig_v <- eigen_centrality(g1)$vector
+eig_lambda <- eigen_centrality(g1)$value
+
+eig_v %*% A
+eig_v * eig_lambda
+
+
+# hubs and authorities ----------------------------------------------------
+
+hub_score(g1)$vector %>% sort()
+authority_score(g1)$vector %>% sort()
+
+
+# Cohesion of the network -------------------------------------------------
+
+edge_connectivity(g1)
+vertex_connectivity(g1)
