@@ -190,7 +190,7 @@ $$
 
 * If $\langle k \rangle < 1$, or $p < 1/N$, the largest component is approximately zero.
 * If $\langle k \rangle \geq 1$, a *giant* component emerges.
-* If $\langle k \rangle > \ln(N)$, the network is almost connected.
+* If $\langle k \rangle > \ln(N)$, the network is connected with probability $\approx 1$.
 
 
 ## Watts-Strogatz small-world networks
