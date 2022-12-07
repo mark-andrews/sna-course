@@ -155,3 +155,119 @@ ggplot(data = NULL, aes(x = get_distances(g3fb))) +
   geom_bar() +
   ggtitle('Facebook: Distance')
   
+
+
+# Giants, connectness, components, criticality ----------------------------
+
+# a disconnected random network
+g5 <- erdos.renyi.game(100, p = 1/200)
+plot(g5, vertex.size = 5, vertex.label = NA, layout = layout_with_fr)
+
+# get the components
+components(g5)
+
+# get the giant
+get_giant <- function(N, k){
+  p <- k/(N-1)
+  g <- erdos.renyi.game(N, p)
+  # get size of largest component
+  # return as proportion of network size/order
+  max(components(g)$csize)/N
+}
+
+get_giant(10000, 0.01)
+get_giant(10000, 0.9)
+get_giant(10000, 1.1)
+get_giant(10000, 5)
+get_giant(10000, 10)
+
+k <- seq(1/1000, 10, by = 0.01)
+# giant proportion
+gprop <- map_dbl(k, ~get_giant(10000, .))
+
+tibble(avgdeg = k,
+       gprop = gprop) %>% 
+  ggplot(aes(x = avgdeg, y = gprop)) + 
+  geom_line() +
+  geom_vline(xintercept = 1, colour = 'red') +
+  geom_vline(xintercept = log(10000), colour = 'red')
+
+
+
+# Small world nets --------------------------------------------------------
+
+g6 <- sample_smallworld(dim = 1, size = 10, nei = 2, p = 0)
+plot(g6, layout = layout_in_circle, vertex.label = NA)
+
+g7 <- sample_smallworld(dim = 1, size = 25, nei = 3, p = 0)
+plot(g7, layout = layout_in_circle, vertex.size = 2, vertex.label = NA)
+
+degree(g6)
+
+g8 <- sample_smallworld(dim = 1, size = 100, nei = 3, p = 0)
+g8r <- erdos.renyi.game(n = vcount(g8),
+                        ecount(g8),
+                        type = 'gnm')
+vcount(g8r)
+
+# average clique coef in the two networks
+clique_coefs(g8) %>% mean()
+clique_coefs(g8r) %>% mean()
+
+# average distances in the two nets
+mean_distance(g8)
+mean_distance(g8r)
+
+diameter(g8)
+diameter(g8r)
+
+# rewiring probability of 10%
+g9 <- sample_smallworld(dim = 1, size = 100, nei = 3, p = 0.1)
+plot(g9, layout = layout_in_circle, vertex.size = 2, vertex.label = NA)
+
+
+# Watts-Strogatz
+g10 <- sample_smallworld(dim = 1, size = 1000, nei = 5, p = 0.1)
+# Regular lattice
+g10L <- sample_smallworld(dim = 1, size = 1000, nei = 5, p = 0.0)
+# Erdos-Renyi
+g10R <- erdos.renyi.game(n = vcount(g10),
+                         ecount(g10),
+                         type = 'gnm')
+
+# clique coefficients
+clique_coefs(g10) %>% mean()
+clique_coefs(g10L) %>% mean()
+clique_coefs(g10R) %>% mean()
+
+# mean distances
+mean_distance(g10)
+mean_distance(g10L)
+mean_distance(g10R)
+
+diameter(g10)
+diameter(g10L)
+diameter(g10R)
+
+# range of rewiring probability values
+p <- seq(0, 0.25, length.out = 1000)
+# for each probability calculate average clique coef in a Watts-Strogatz model
+cc_range <- map_dbl(p,
+    ~mean(clique_coefs(sample_smallworld(dim = 1, size = 1000, nei = 5, p = .)))
+)
+
+# plot it
+tibble(p = p,
+       cc = cc_range) %>% 
+  ggplot(aes(x = p, y = cc)) + geom_point()
+
+
+# for each probability calculate diameter in a Watts-Strogatz model
+diam_range <- map_dbl(p,
+      ~diameter(sample_smallworld(dim = 1, size = 1000, nei = 5, p = .))
+)
+
+# plot it
+tibble(p = p,
+       diam = diam_range) %>% 
+  ggplot(aes(x = p, y = diam_range)) + geom_point()

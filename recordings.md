@@ -7,3 +7,7 @@
 
 * [Session 1](https://vimeo.com/778430618)
 * [Session 2](https://vimeo.com/778499143)
+
+# Day 3
+
+* [Session 1](https://vimeo.com/778805673)
