@@ -11,3 +11,4 @@
 # Day 3
 
 * [Session 1](https://vimeo.com/778805673)
+* [Session 2](https://vimeo.com/778877435)

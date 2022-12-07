@@ -271,3 +271,100 @@ diam_range <- map_dbl(p,
 tibble(p = p,
        diam = diam_range) %>% 
   ggplot(aes(x = p, y = diam_range)) + geom_point()
+
+
+# watts/strogatz similar size/order to facebook: p = 10%
+g11 <- sample_smallworld(dim = 1, size = vcount(g3fb),
+                         nei = ecount(g3fb)/vcount(g3fb),
+                         p = 0.1)
+
+clique_coefs(g3fb) %>% mean()
+clique_coefs(g11) %>% mean()
+
+mean_distance(g3fb)
+mean_distance(g11)
+
+
+# watts/strogatz similar size/order to facebook; p = 1%
+g12 <- sample_smallworld(dim = 1, size = vcount(g3fb),
+                         nei = ecount(g3fb)/vcount(g3fb),
+                         p = 0.01)
+
+clique_coefs(g3fb) %>% mean()
+clique_coefs(g12) %>% mean()
+
+mean_distance(g3fb)
+mean_distance(g12)
+
+# degree distribution
+# facebook
+ggplot(data = NULL, aes(x=degree(g3fb))) + geom_bar()
+ggplot(data = NULL, aes(x = degree(g12))) + geom_bar()
+
+
+
+# Preferential attachment network -----------------------------------------
+
+g13 <- sample_pa(100, directed = FALSE)
+plot(g13, vertex.label = NA, vertex.size = 1)
+
+
+g14 <- sample_pa(10000, directed = FALSE)
+ggplot(data = NULL,
+       aes(x = degree(g14))
+) + geom_bar() + 
+  scale_x_continuous(trans = 'log10') +
+  scale_y_continuous(trans = 'log10')
+
+degree_distribution(g14) %>% 
+  enframe(name = 'degree',
+          value = 'prob') %>% 
+  mutate(degree = degree - 1) %>% 
+  filter(prob != 0) %>% 
+  ggplot(aes(x = degree, y = prob)) + geom_point() +
+  scale_x_continuous(trans = 'log10') +
+  scale_y_continuous(trans = 'log10')
+
+
+genOutSeq <- function(n, m) {
+  n <- n-1 # Shift it along
+  rem <- m %% n
+  c(0, rep(m%/%n + 1, rem), rep(m%/%n, n - rem))
+}
+
+g15 <- 
+sample_pa(n = vcount(g3fb),
+          out.seq = genOutSeq(vcount(g3fb), ecount(g3fb)),
+          directed = FALSE)
+
+# plot degree distribution on log/log scale
+degree_distribution(g15) %>% 
+  enframe(name = 'degree',
+          value = 'prob') %>% 
+  mutate(degree = degree - 1) %>% 
+  filter(prob != 0) %>% 
+  ggplot(aes(x = degree, y = prob)) + geom_point() +
+  scale_x_continuous(trans = 'log10') +
+  scale_y_continuous(trans = 'log10')
+
+
+ggplot(data = NULL,
+       aes(x = degree(g15))
+) + geom_bar() + ggtitle('PA net')
+
+# compare to FB
+ggplot(data = NULL,
+       aes(x = degree(g3fb))
+) + geom_bar() + ggtitle('FB')
+
+
+# mean clique coef
+clique_coefs(g15) %>% mean()
+clique_coefs(g3fb) %>% mean()
+
+# mean distance
+mean_distance(g15)
+mean_distance(g3fb)
+
+diameter(g15)
+diameter(g3fb)
