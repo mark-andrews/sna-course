@@ -1,0 +1,89 @@
+---
+title: "Exponential Random Graph Models"
+author: "Mark Andrews"
+date: "December 2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(here)
+theme_set(theme_classic())
+```
+
+## Exponential random graph model
+
+* Let $\mathcal{Y}$ be the set of all possible networks of order $N$. Let $Y$ be a random network (random variable) defined on $\mathcal{Y}$, and let $y$ be a particular network, i.e. a realization of $Y$.
+* Exponential random graph models (ERGMs) are a way to represent a probability distribution over $Y$ as a normalized exponential function of some sufficient statistics $s_1(y),s_2(y), \ldots s_K(y)$, which are functions of $y$ or the attributes of the vertices or edges of $y$:
+$$
+P(Y = y) = \frac{e^{\sum_k^K \theta_k s_k(y)}}{\sum_{y^\prime \in \mathcal{Y}}e^{\sum_k^K \theta_k s_k(y^\prime)}}.
+$$
+
+
+## Exponential random graph model
+
+* We can rewrite 
+$$
+P(Y = y) = \frac{e^{\sum_k^K \theta_k s_k(y)}}{\sum_{y^\prime \in \mathcal{Y}}e^{\sum_k^K \theta_k s_k(y^\prime)}}.
+$$
+as 
+$$
+P(Y = y) = \frac{1}{Z}\exp\left(\theta^\intercal s(y)\right),
+$$
+where it is understood that $\theta$ and $s(y)$ are vectors, and $Z$ is the denominator of the original.
+
+
+## Exponential families
+
+* The ERGM can be written in the *exponential family* form:
+$$
+P(Y = y) = \exp\left(\theta^\intercal s(y) - A\right),
+$$
+where $A = \log(Z)$.
+* Many familiar probability distributions --- normal, binomial, $\chi^2$, Poisson --- can be written in this way.
+* However, ERGMs can not be written in closed form.
+
+## Normalizing constants
+
+* There are
+$$
+2^{N \choose 2}
+$$
+elements in $\mathcal{Y}$.
+* For example, if $N=100$, then $\vert \mathcal{Y} \vert \approx 10^{1500}$. 
+* Therefore, the normalizing constant in the ERGM, i.e. 
+$$
+\sum_{y^\prime \in \mathcal{Y}}e^{\sum_k^K \theta_k s_k(y^\prime)},
+$$
+is intractable.
+
+## Erdős-Rényi random network as ERGM
+
+* The Erdős-Rényi random network can be written as ERGM:
+$$
+\begin{aligned}
+P(Y = y) &= {N(N-1)/2 \choose 2} p ^ L  (1-p) ^ {N(N-1)/2 - L} ,\\
+         &\propto \exp\left(\theta s(y)\right),
+\end{aligned}
+$$
+where
+$$
+\theta = \log\left(\frac{p}{1-p}\right),\quad s(y) = L.
+$$
+* Thus, edge count $L = s(y)$ is our sufficient statistic, and the inferred coefficient $\theta$ is the log odds of a edge between any two vertices.
+
+## Probability of edge $y_{ij}$
+
+* The ERGM can give us the probability of an edge $y_{ij}$ as follows:
+$$
+\log\left(\frac{P(y_{ij}=1| y^c_{ij})}{P(y_{ij}=0|y^c_{ij})}\right) = \sum_k^K \theta_k \delta_k(y),
+$$
+and so
+$$
+P(y_{ij}=1| y^c_{ij}) = \frac{e^{\sum_k^K \theta_k \delta_k(y)}}{1 + e^{\sum_k^K \theta_k \delta_k(y)}},
+$$
+where $y^c_{ij}$ is the network except for edge $y_{ij}$ and $\delta_k{y}$ is the change in sufficient statistic $s_k(y)$ from when $y_{ji}=0$ to when $y_{ji}=1$.
