@@ -27,6 +27,7 @@ flomarriage %v% 'wealth'
 # flomarriage ~ edges 
 # ergm(flomarriage ~ edges)
 
+
 summary(flomarriage ~ edges)
 
 flomodel_v1 <- ergm(flomarriage ~ edges)
@@ -67,3 +68,64 @@ ilogit(b['edges'] * 1 + b['triangle'] * 2)
 confint(flomodel_v2)
 
 map_dbl(list(flomodel_v1, flomodel_v2), AIC)
+
+
+# model 3: using wealth covariate -----------------------------------------
+
+summary(flomarriage ~ edges + nodecov('wealth'))
+
+flomodel_v3 <- ergm(flomarriage ~ edges + nodecov('wealth'))
+summary(flomodel_v3)
+
+b <- coef(flomodel_v3)
+# what's the prob of an edge if the combined wealth increases by 10
+ilogit(b['edges'] + b['nodecov.wealth'] * 10)
+# what's the prob of an edge if the combined wealth increases by 50
+ilogit(b['edges'] + b['nodecov.wealth'] * 50)
+# what's the prob of an edge if the combined wealth increases by 100
+ilogit(b['edges'] + b['nodecov.wealth'] * 100)
+
+map_dbl(list(flomodel_v1, flomodel_v2, flomodel_v3), AIC)
+
+
+# New data ----------------------------------------------------------------
+
+data("faux.mesa.high")
+
+mesa <- faux.mesa.high
+
+plot(mesa)
+plot(mesa, vertex.col = 'Grade')
+
+summary(mesa ~ edges + nodefactor('Grade', levels = TRUE))
+
+grade <- mesa %v% 'Grade'
+grade == 7
+as.sociomatrix(mesa)[grade == 7,] %>% rowSums() %>% sum()
+as.sociomatrix(mesa)[grade == 11,] %>% rowSums() %>% sum()
+
+mesa_v1 <- ergm(mesa ~ edges + nodefactor('Grade'))
+summary(mesa_v1)
+
+b <- coef(mesa_v1)
+
+ilogit(b['edges'] )
+ilogit(b['edges'] + b['nodefactor.Grade.8'])
+
+
+
+# Model: matching of factors ----------------------------------------------
+
+summary(mesa ~ edges + nodematch('Grade'))
+
+mesa_v2 <- ergm(mesa ~ edges + nodematch('Grade'))
+summary(mesa_v2)
+
+b <- coef(mesa_v2)
+
+# the probaility of a new edge between two people of different grades
+ilogit(b['edges'] + b['nodematch.Grade'] * 0)
+
+# the probaility of a new edge between two people of the same grade
+ilogit(b['edges'] + b['nodematch.Grade'] * 1)
+
